@@ -1,0 +1,7 @@
+{
+  "name": "MedGuard Pro - Patient Management System (UU PDP Compliant)",
+  "description": "Sistem Manajemen Pasien modern yang dirancang khusus untuk memenuhi standar regulasi Perlindungan Data Pribadi (UU PDP) di Indonesia, dilengkapi dengan enkripsi data, log audit akses, dan asisten AI medis.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
