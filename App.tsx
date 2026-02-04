@@ -10,7 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 type ActiveMenu = 'DASHBOARD' | 'PATIENT_MANAGEMENT' | 'PDP_COMPLIANCE';
 
-// Masking Utilities (Centralized)
+// Masking Utilities
 export const maskNIK = (nik: string) => {
   if (!nik || nik.includes('*')) return nik;
   if (nik.length < 8) return nik;
@@ -34,7 +34,6 @@ export const maskEmail = (email: string) => {
 
 export const maskBirthDate = (date: string) => {
   if (!date || date.includes('*')) return date;
-  // Expecting DD-MM-YYYY
   return `${date.substring(0, 2)}******${date.substring(date.length - 2)}`;
 };
 
@@ -107,14 +106,12 @@ const App: React.FC = () => {
     if (unmaskTarget) {
       const { patientId, field, label } = unmaskTarget;
       addLog('VIEW', patientId, `AKSES DATA SENSITIF (${label}). Alasan: ${accessReason}`);
-      
       setUnmaskedFields(prev => {
         const next = { ...prev };
         if (!next[patientId]) next[patientId] = new Set();
         next[patientId].add(field);
         return next;
       });
-
       setIsUnmaskModalOpen(false);
       setUnmaskTarget(null);
     }
@@ -126,7 +123,6 @@ const App: React.FC = () => {
 
   const handleSavePatient = (patientData: Partial<Patient>) => {
     if (isEditingPatient && selectedPatient) {
-      // Logic to merge: if input contains asterisks, use the original value
       const mergedData = { ...patientData };
       if (mergedData.nik?.includes('*')) mergedData.nik = selectedPatient.nik;
       if (mergedData.email?.includes('*')) mergedData.email = selectedPatient.email;
@@ -155,7 +151,7 @@ const App: React.FC = () => {
 
   const handleDeletePatient = (id: string) => {
     const p = patients.find(x => x.id === id);
-    if (confirm(`PERINGATAN UU PDP: Hapus permanen seluruh data ${p?.name}? Tindakan ini direkam sebagai 'Right to Erasure'.`)) {
+    if (confirm(`PERINGATAN UU PDP: Hapus permanen seluruh data ${p?.name}?`)) {
       setPatients(patients.filter(p => p.id !== id));
       addLog('DELETE', id, `Penghapusan data (Hak untuk Dilupakan): ${p?.name}`);
       setSelectedPatient(null);
@@ -202,106 +198,106 @@ const App: React.FC = () => {
     p.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const NavItem = ({ id, icon: Icon, label }: { id: ActiveMenu, icon: any, label: string }) => {
+    const active = activeMenu === id;
+    return (
+      <button 
+        onClick={() => { setActiveMenu(id); setSelectedPatient(null); setIsAddingPatient(false); setIsEditingPatient(false); }}
+        className={`flex flex-col lg:flex-row items-center gap-1 lg:gap-4 px-3 lg:px-5 py-2 lg:py-4 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest transition-all flex-1 lg:flex-none ${active ? 'bg-blue-600 text-white shadow-lg lg:shadow-2xl lg:shadow-blue-200 lg:scale-105' : 'text-slate-400 hover:bg-white hover:text-slate-800'}`}
+      >
+        <Icon className={`w-5 h-5 lg:w-5 lg:h-5 ${active ? 'text-white' : 'text-slate-400'}`} />
+        <span>{label}</span>
+      </button>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-['Inter']">
-      <header className="bg-white border-b border-slate-200 h-16 flex items-center px-6 sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-xl shadow-blue-100">
-            <IconShield className="w-6 h-6" />
+    <div className="min-h-screen bg-slate-50 flex flex-col font-['Inter'] pb-20 lg:pb-0">
+      {/* Header - Adaptive */}
+      <header className="bg-white border-b border-slate-200 h-14 lg:h-16 flex items-center px-4 lg:px-6 sticky top-0 z-50">
+        <div className="flex items-center gap-2 lg:gap-3">
+          <div className="w-8 h-8 lg:w-10 lg:h-10 bg-blue-600 rounded-lg lg:rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
+            <IconShield className="w-5 h-5 lg:w-6 lg:h-6" />
           </div>
-          <div>
-            <h1 className="text-lg font-black text-slate-800 tracking-tight">MedGuard Pro</h1>
-            <p className="text-[10px] text-slate-500 font-black uppercase">Health Data Governance</p>
+          <div className="hidden xs:block">
+            <h1 className="text-sm lg:text-lg font-black text-slate-800 tracking-tight leading-none">MedGuard</h1>
+            <p className="text-[8px] lg:text-[10px] text-slate-500 font-black uppercase tracking-tighter">Health Governance</p>
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-4">
-          <div className="hidden sm:flex px-4 py-1.5 bg-blue-50 text-blue-700 text-[10px] font-black rounded-full border border-blue-100 items-center gap-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
-            ENCRYPTED SESSION ACTIVE
+        <div className="ml-auto flex items-center gap-2 lg:gap-4">
+          <div className="hidden sm:flex px-3 py-1 bg-blue-50 text-blue-700 text-[9px] font-black rounded-full border border-blue-100 items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
+            ENCRYPTED
           </div>
-          <div className="h-8 w-px bg-slate-200"></div>
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden md:block">
+          <div className="h-6 lg:h-8 w-px bg-slate-200"></div>
+          <div className="flex items-center gap-2 lg:gap-3">
+            <div className="text-right hidden lg:block">
               <p className="text-xs font-black text-slate-700">{currentUser.name}</p>
               <p className="text-[10px] text-slate-400 font-bold uppercase">{currentUser.role}</p>
             </div>
-            <div className="w-10 h-10 rounded-2xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center text-slate-400 shadow-sm">
-              <IconUser className="w-5 h-5" />
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-2xl bg-slate-100 border lg:border-2 border-slate-200 flex items-center justify-center text-slate-400 shadow-sm">
+              <IconUser className="w-4 h-4 lg:w-5 lg:h-5" />
             </div>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 flex max-w-7xl mx-auto w-full px-6 py-8 gap-8">
-        <aside className="w-64 flex flex-col gap-3 shrink-0">
+      <div className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full px-4 lg:px-6 py-4 lg:py-8 gap-4 lg:gap-8">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:flex w-64 flex-col gap-3 shrink-0">
           <nav className="space-y-1">
-            <button 
-              onClick={() => { setActiveMenu('DASHBOARD'); setSelectedPatient(null); setIsAddingPatient(false); setIsEditingPatient(false); }}
-              className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeMenu === 'DASHBOARD' ? 'bg-blue-600 text-white shadow-2xl shadow-blue-200 scale-105' : 'text-slate-400 hover:bg-white hover:text-slate-800'}`}
-            >
-              <IconClipboard className="w-5 h-5" /> Dashboard
-            </button>
-            <button 
-              onClick={() => { setActiveMenu('PATIENT_MANAGEMENT'); setSelectedPatient(null); setIsAddingPatient(false); setIsEditingPatient(false); }}
-              className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeMenu === 'PATIENT_MANAGEMENT' ? 'bg-blue-600 text-white shadow-2xl shadow-blue-200 scale-105' : 'text-slate-400 hover:bg-white hover:text-slate-800'}`}
-            >
-              <IconUser className="w-5 h-5" /> Pasien
-            </button>
-            <button 
-              onClick={() => { setActiveMenu('PDP_COMPLIANCE'); setSelectedPatient(null); setIsAddingPatient(false); setIsEditingPatient(false); }}
-              className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeMenu === 'PDP_COMPLIANCE' ? 'bg-blue-600 text-white shadow-2xl shadow-blue-200 scale-105' : 'text-slate-400 hover:bg-white hover:text-slate-800'}`}
-            >
-              <IconLock className="w-5 h-5" /> Kepatuhan
-            </button>
+            <NavItem id="DASHBOARD" icon={IconClipboard} label="Dashboard" />
+            <NavItem id="PATIENT_MANAGEMENT" icon={IconUser} label="Pasien" />
+            <NavItem id="PDP_COMPLIANCE" icon={IconLock} label="Kepatuhan" />
           </nav>
         </aside>
 
-        <main className="flex-1 min-w-0">
+        {/* Main Content */}
+        <main className="flex-1 min-w-0 mobile-safe-area">
           {activeMenu === 'DASHBOARD' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+            <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                <div className="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
                   <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <IconUser className="w-20 h-20" />
+                    <IconUser className="w-16 h-16 lg:w-20 lg:h-20" />
                   </div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Pasien</p>
-                  <p className="text-4xl font-black text-slate-800">{patients.length}</p>
+                  <p className="text-3xl lg:text-4xl font-black text-slate-800">{patients.length}</p>
                   <div className="mt-4 flex items-center gap-2">
                     <span className="text-[10px] font-black text-green-500 px-2 py-0.5 bg-green-50 rounded-lg">↑ 4.2%</span>
-                    <span className="text-[10px] font-bold text-slate-400 italic">vs bulan lalu</span>
                   </div>
                 </div>
-                <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                <div className="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group">
                   <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <IconShield className="w-20 h-20" />
+                    <IconShield className="w-16 h-16 lg:w-20 lg:h-20" />
                   </div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">PDP Consent Rate</p>
-                  <p className="text-4xl font-black text-slate-800">{patients.length > 0 ? Math.round((patients.filter(p => p.consentSigned).length / patients.length) * 100) : 0}%</p>
-                  <div className="mt-4 text-[10px] font-black text-blue-600 px-2 py-0.5 bg-blue-50 rounded-lg inline-block">100% REQUIRED</div>
+                  <p className="text-3xl lg:text-4xl font-black text-slate-800">{patients.length > 0 ? Math.round((patients.filter(p => p.consentSigned).length / patients.length) * 100) : 0}%</p>
                 </div>
-                <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                <div className="bg-white p-6 lg:p-8 rounded-3xl border border-slate-200 shadow-sm relative overflow-hidden group sm:col-span-2 lg:col-span-1">
                   <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <IconHistory className="w-20 h-20" />
+                    <IconHistory className="w-16 h-16 lg:w-20 lg:h-20" />
                   </div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Log Keamanan</p>
-                  <p className="text-4xl font-black text-slate-800">{logs.length}</p>
-                  <div className="mt-4 text-[10px] font-bold text-slate-400 italic">Real-time auditing active</div>
+                  <p className="text-3xl lg:text-4xl font-black text-slate-800">{logs.length}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-                  <h3 className="text-sm font-black text-slate-800 mb-8 uppercase tracking-widest flex items-center gap-3">
+              {/* Chart & Recent Activity */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                <div className="bg-white p-6 lg:p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                  <h3 className="text-sm font-black text-slate-800 mb-6 lg:mb-8 uppercase tracking-widest flex items-center gap-3">
                     <div className="w-1.5 h-4 bg-blue-600 rounded-full"></div> Pasien by Gender
                   </h3>
-                  <div className="h-72">
+                  <div className="h-60 lg:h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={genderData}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                         <XAxis dataKey="name" fontSize={10} fontWeight="black" axisLine={false} tickLine={false} />
                         <YAxis fontSize={10} fontWeight="black" axisLine={false} tickLine={false} />
-                        <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '20px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '15px'}} />
-                        <Bar dataKey="value" radius={[10, 10, 0, 0]} barSize={40}>
+                        <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', padding: '12px'}} />
+                        <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={32}>
                           {genderData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.name === 'Laki-laki' ? '#3b82f6' : '#ec4899'} />
                           ))}
@@ -310,19 +306,19 @@ const App: React.FC = () => {
                     </ResponsiveContainer>
                   </div>
                 </div>
-                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-                   <h3 className="text-sm font-black text-slate-800 mb-8 uppercase tracking-widest flex items-center gap-3">
+                <div className="bg-white p-6 lg:p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                   <h3 className="text-sm font-black text-slate-800 mb-6 lg:mb-8 uppercase tracking-widest flex items-center gap-3">
                     <div className="w-1.5 h-4 bg-purple-600 rounded-full"></div> Security Events
                   </h3>
-                  <div className="space-y-5">
+                  <div className="space-y-4 lg:space-y-5">
                     {logs.slice(0, 4).map(log => (
-                      <div key={log.id} onClick={() => setSelectedLog(log)} className="flex gap-4 items-start p-4 hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-100 group cursor-pointer">
-                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.4)] group-hover:scale-125 transition-transform"></div>
-                        <div className="flex-1">
-                          <p className="text-xs font-black text-slate-700 leading-tight">{log.details}</p>
-                          <div className="flex items-center gap-3 mt-1.5">
-                            <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter">{new Date(log.timestamp).toLocaleString()}</span>
-                            <span className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-md font-black uppercase">{log.action}</span>
+                      <div key={log.id} onClick={() => setSelectedLog(log)} className="flex gap-3 lg:gap-4 items-start p-3 lg:p-4 hover:bg-slate-50 rounded-xl transition-all border border-transparent hover:border-slate-100 group cursor-pointer">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.4)]"></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] lg:text-xs font-black text-slate-700 leading-tight truncate">{log.details}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[9px] font-bold text-slate-400 font-mono tracking-tighter">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                            <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black uppercase">{log.action}</span>
                           </div>
                         </div>
                       </div>
@@ -334,24 +330,24 @@ const App: React.FC = () => {
           )}
 
           {activeMenu === 'PATIENT_MANAGEMENT' && (
-            <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="space-y-4 lg:space-y-6 animate-in fade-in duration-500">
               {!selectedPatient && !isAddingPatient && !isEditingPatient && (
-                <div className="flex flex-col md:flex-row gap-6 items-center justify-between mb-8">
+                <div className="flex flex-col lg:flex-row gap-4 items-center justify-between mb-4 lg:mb-8">
                   <div className="relative flex-1 w-full">
-                    <IconSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <IconSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                     <input 
                       type="text" 
-                      placeholder="Cari pasien berdasarkan nama, email, atau NIK..."
-                      className="w-full pl-14 pr-6 py-4 bg-white border border-slate-200 rounded-[1.5rem] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-bold transition-all shadow-sm"
+                      placeholder="Cari pasien..."
+                      className="w-full pl-12 pr-4 py-3 lg:py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-bold transition-all shadow-sm"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                   <button 
                     onClick={() => setIsAddingPatient(true)}
-                    className="bg-blue-600 text-white px-8 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest flex items-center gap-3 hover:bg-blue-700 transition-all shadow-2xl shadow-blue-200 shrink-0"
+                    className="w-full lg:w-auto bg-blue-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-lg"
                   >
-                    <IconPlus className="w-5 h-5" /> Tambah Pasien
+                    <IconPlus className="w-4 h-4 lg:w-5 lg:h-5" /> <span>Pasien Baru</span>
                   </button>
                 </div>
               )}
@@ -364,178 +360,93 @@ const App: React.FC = () => {
                   onCancel={() => { setIsAddingPatient(false); setIsEditingPatient(false); }} 
                 />
               ) : selectedPatient ? (
-                <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-8 duration-500">
-                  <div className="p-10 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-8">
-                      <div className={`w-24 h-24 rounded-[2rem] flex items-center justify-center text-4xl font-black shadow-inner border-4 border-white ${selectedPatient.gender === 'Laki-laki' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
+                <div className="bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+                  <div className="p-6 lg:p-10 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="flex items-center gap-4 lg:gap-8">
+                      <div className={`w-16 h-16 lg:w-24 lg:h-24 rounded-2xl lg:rounded-[2rem] flex items-center justify-center text-2xl lg:text-4xl font-black shadow-inner border-4 border-white shrink-0 ${selectedPatient.gender === 'Laki-laki' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
                         {selectedPatient.name.charAt(0)}
                       </div>
-                      <div>
-                        <div className="flex items-center gap-4 mb-2">
-                          <h2 className="text-3xl font-black text-slate-800 tracking-tight">{selectedPatient.name}</h2>
-                          <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${selectedPatient.consentSigned ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
-                            {selectedPatient.consentSigned ? 'PDP Verified' : 'Missing Consent'}
-                          </span>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-4 mb-2">
+                          <h2 className="text-xl lg:text-3xl font-black text-slate-800 tracking-tight truncate">{selectedPatient.name}</h2>
                         </div>
-                        <div className="text-slate-500 text-sm font-bold flex flex-col gap-1">
+                        <div className="text-slate-500 text-[10px] lg:text-sm font-bold flex flex-col gap-1">
                            <p>{selectedPatient.gender} • <span className="cursor-pointer hover:text-blue-600" onClick={() => handleUnmaskRequest(selectedPatient.id, 'birthDate', 'Tanggal Lahir', selectedPatient.birthDate)}>{isFieldUnmasked(selectedPatient.id, 'birthDate') ? selectedPatient.birthDate : maskBirthDate(selectedPatient.birthDate)}</span> (Umur: {calculateAge(selectedPatient.birthDate)} thn)</p>
-                           <div className="flex flex-wrap items-center gap-4 mt-1">
-                              <span className="flex items-center gap-1 cursor-pointer hover:text-blue-600" onClick={() => handleUnmaskRequest(selectedPatient.id, 'nik', 'NIK', selectedPatient.nik)}>
-                                <IconLock className="w-3 h-3"/> NIK: {isFieldUnmasked(selectedPatient.id, 'nik') ? selectedPatient.nik : maskNIK(selectedPatient.nik)}
-                              </span>
-                              <span className="flex items-center gap-1 cursor-pointer hover:text-blue-600" onClick={() => handleUnmaskRequest(selectedPatient.id, 'email', 'Email', selectedPatient.email)}>
-                                📧 {isFieldUnmasked(selectedPatient.id, 'email') ? selectedPatient.email : maskEmail(selectedPatient.email)}
-                              </span>
-                              <span className="flex items-center gap-1 cursor-pointer hover:text-blue-600" onClick={() => handleUnmaskRequest(selectedPatient.id, 'phone', 'Phone', selectedPatient.phone)}>
-                                📞 {isFieldUnmasked(selectedPatient.id, 'phone') ? selectedPatient.phone : maskPhone(selectedPatient.phone)}
-                              </span>
-                           </div>
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-3">
-                      <button 
-                        onClick={() => setIsEditingPatient(true)}
-                        className="p-4 bg-white border border-slate-200 rounded-2xl text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
-                        title="Edit Data"
-                      >
-                        <IconEdit className="w-6 h-6" />
+                    <div className="flex gap-2 w-full md:w-auto">
+                      <button onClick={() => setIsEditingPatient(true)} className="flex-1 md:flex-none p-3 lg:p-4 bg-white border border-slate-200 rounded-xl lg:rounded-2xl text-blue-600 hover:bg-blue-50 transition-all shadow-sm flex items-center justify-center">
+                        <IconEdit className="w-5 h-5" />
                       </button>
-                      <button 
-                        onClick={() => handleDeletePatient(selectedPatient.id)}
-                        className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 hover:bg-red-100 transition-all shadow-sm"
-                        title="Hapus Pasien"
-                      >
-                        <IconTrash className="w-6 h-6" />
+                      <button onClick={() => handleDeletePatient(selectedPatient.id)} className="flex-1 md:flex-none p-3 lg:p-4 bg-red-50 border border-red-100 rounded-xl lg:rounded-2xl text-red-600 hover:bg-red-100 transition-all shadow-sm flex items-center justify-center">
+                        <IconTrash className="w-5 h-5" />
                       </button>
-                      <button 
-                        onClick={() => setSelectedPatient(null)} 
-                        className="p-4 hover:bg-slate-200 rounded-2xl transition-all"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      <button onClick={() => setSelectedPatient(null)} className="flex-1 md:flex-none p-3 lg:p-4 hover:bg-slate-200 bg-white border border-slate-200 rounded-xl lg:rounded-2xl transition-all flex items-center justify-center">
+                         <span className="text-slate-400 font-black">X</span>
                       </button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
-                    <div className="p-10 col-span-2 space-y-10">
-                      <section>
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                          <IconClipboard className="w-5 h-5 text-blue-600" /> Clinical History
-                        </h4>
-                        {selectedPatient.records.length > 0 ? (
-                          <div className="space-y-6">
-                            {selectedPatient.records.map(r => (
-                              <div key={r.id} className="p-8 border border-slate-100 rounded-[2rem] bg-slate-50/50 hover:bg-white transition-all hover:shadow-xl group">
-                                <div className="flex justify-between items-start mb-4">
-                                  <span className="text-[10px] font-black text-slate-400 bg-white px-3 py-1.5 rounded-xl border border-slate-100 uppercase tracking-widest">{r.date}</span>
-                                  <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">{r.doctor}</span>
-                                </div>
-                                <h5 className="font-black text-slate-800 text-xl mb-3 group-hover:text-blue-600 transition-colors">{r.diagnosis}</h5>
-                                <p className="text-sm text-slate-600 leading-relaxed mb-6">{r.treatment}</p>
-                                <div className="flex gap-3 flex-wrap">
-                                  {r.prescriptions.map((p, idx) => (
-                                    <span key={idx} className="bg-white text-slate-700 px-4 py-2 rounded-2xl text-[10px] font-black border border-slate-200 italic shadow-sm">
-                                      💊 {p}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
+                    <div className="p-6 lg:p-10 col-span-2 space-y-6 lg:space-y-10">
+                       {/* Sensitive Data Grid */}
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:bg-white transition-all" onClick={() => handleUnmaskRequest(selectedPatient.id, 'nik', 'NIK', selectedPatient.nik)}>
+                            <p className="text-[9px] font-black text-slate-400 uppercase mb-1">NIK</p>
+                            <p className="text-xs font-bold font-mono">{isFieldUnmasked(selectedPatient.id, 'nik') ? selectedPatient.nik : maskNIK(selectedPatient.nik)}</p>
                           </div>
-                        ) : (
-                          <div className="py-24 text-center bg-slate-50/50 rounded-[2.5rem] border-4 border-dashed border-slate-100">
-                            <IconClipboard className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-                            <p className="text-slate-400 font-black uppercase tracking-widest text-xs italic">Belum ada rekam medis tersimpan.</p>
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:bg-white transition-all" onClick={() => handleUnmaskRequest(selectedPatient.id, 'email', 'Email', selectedPatient.email)}>
+                            <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Email</p>
+                            <p className="text-xs font-bold">{isFieldUnmasked(selectedPatient.id, 'email') ? selectedPatient.email : maskEmail(selectedPatient.email)}</p>
                           </div>
-                        )}
-                      </section>
-                    </div>
-
-                    <div className="p-10 bg-slate-50/50 space-y-10">
-                      <div>
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                          AI Clinical Insights
-                        </h4>
-                        <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-xl min-h-[160px] flex items-center justify-center relative overflow-hidden group">
-                          <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
-                          {loadingAi ? (
-                            <div className="flex flex-col items-center justify-center gap-4 text-center">
-                              <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Processing medical intelligence...</p>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-slate-700 leading-relaxed italic font-medium px-2">"{aiSummary || 'Pilih pasien untuk memulai analisa AI otomatis berdasarkan riwayat kesehatan.'}"</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Privacy Controls</h4>
-                        <div className="p-5 bg-white rounded-[1.5rem] border border-slate-200 space-y-3 shadow-sm">
-                           <div className="flex justify-between items-center text-[10px] font-black">
-                             <span className="text-slate-400 uppercase">Encryption</span>
-                             <span className="text-green-500 uppercase">ACTIVE</span>
-                           </div>
-                           <div className="flex justify-between items-center text-[10px] font-black">
-                             <span className="text-slate-400 uppercase">Logs Recorded</span>
-                             <span className="text-blue-500 uppercase">YES</span>
-                           </div>
-                           <div className="flex justify-between items-center text-[10px] font-black">
-                             <span className="text-slate-400 uppercase">Data Portability</span>
-                             <span className="text-slate-800 uppercase underline cursor-pointer">EXPORT</span>
-                           </div>
-                        </div>
-                      </div>
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:bg-white transition-all" onClick={() => handleUnmaskRequest(selectedPatient.id, 'phone', 'Phone', selectedPatient.phone)}>
+                            <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Phone</p>
+                            <p className="text-xs font-bold">{isFieldUnmasked(selectedPatient.id, 'phone') ? selectedPatient.phone : maskPhone(selectedPatient.phone)}</p>
+                          </div>
+                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
                   {filteredPatients.map(p => (
                     <div 
                       key={p.id} 
                       onClick={() => viewPatientDetails(p)}
-                      className="bg-white p-8 rounded-[2rem] border border-slate-200 hover:border-blue-500 hover:shadow-2xl transition-all cursor-pointer group hover:-translate-y-2 duration-300"
+                      className="bg-white p-5 lg:p-8 rounded-[1.5rem] lg:rounded-[2rem] border border-slate-200 hover:border-blue-500 hover:shadow-xl transition-all cursor-pointer group group"
                     >
-                      <div className="flex items-center gap-5 mb-8">
-                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black shadow-inner border-4 border-white ${p.gender === 'Laki-laki' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
+                      <div className="flex items-center gap-4 lg:gap-5 mb-6 lg:mb-8">
+                        <div className={`w-12 h-12 lg:w-16 lg:h-16 rounded-xl lg:rounded-2xl flex items-center justify-center text-xl lg:text-2xl font-black shadow-inner border-2 lg:border-4 border-white ${p.gender === 'Laki-laki' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
                           {p.name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-black text-slate-800 text-lg group-hover:text-blue-600 transition-colors truncate">{p.name}</h3>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Umur: {calculateAge(p.birthDate)} thn</p>
+                          <h3 className="font-black text-slate-800 text-sm lg:text-lg group-hover:text-blue-600 transition-colors truncate">{p.name}</h3>
+                          <p className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Umur: {calculateAge(p.birthDate)} thn</p>
                         </div>
                       </div>
-                      <div className="space-y-4 mb-8">
-                        <div className="flex items-center gap-3 text-xs font-bold text-slate-500 group-hover:text-slate-700" onClick={(e) => { e.stopPropagation(); handleUnmaskRequest(p.id, 'nik', 'NIK', p.nik); }}>
-                          <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 transition-colors">
-                            <IconLock className="w-4 h-4" />
+                      <div className="space-y-3 lg:space-y-4 mb-6 lg:mb-8">
+                        <div className="flex items-center gap-3 text-[11px] lg:text-xs font-bold text-slate-500">
+                          <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 transition-colors">
+                            <IconLock className="w-3 h-3 lg:w-4 lg:h-4" />
                           </div>
                           <span className="font-mono tracking-tight font-black">{isFieldUnmasked(p.id, 'nik') ? p.nik : maskNIK(p.nik)}</span>
                         </div>
-                        <div className="flex items-center gap-3 text-xs font-bold text-slate-500 group-hover:text-slate-700" onClick={(e) => { e.stopPropagation(); handleUnmaskRequest(p.id, 'email', 'Email', p.email); }}>
-                          <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 transition-colors">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <div className="flex items-center gap-3 text-[11px] lg:text-xs font-bold text-slate-500">
+                          <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 transition-colors">
+                             <span className="pi pi-envelope text-[10px] lg:text-xs"></span>
                           </div>
                           <span className="truncate font-black">{isFieldUnmasked(p.id, 'email') ? p.email : maskEmail(p.email)}</span>
                         </div>
-                        <div className="flex items-center gap-3 text-xs font-bold text-slate-500 group-hover:text-slate-700" onClick={(e) => { e.stopPropagation(); handleUnmaskRequest(p.id, 'phone', 'Phone', p.phone); }}>
-                          <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                          </div>
-                          <span className="font-black">{isFieldUnmasked(p.id, 'phone') ? p.phone : maskPhone(p.phone)}</span>
-                        </div>
                       </div>
-                      <div className="flex justify-between items-center pt-6 border-t border-slate-50">
+                      <div className="flex justify-between items-center pt-4 lg:pt-6 border-t border-slate-50">
                         <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${p.consentSigned ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]'}`}></div>
-                          <span className={`text-[9px] font-black uppercase tracking-widest ${p.consentSigned ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className={`w-2.5 h-2.5 rounded-full ${p.consentSigned ? 'bg-green-500 shadow-sm animate-pulse' : 'bg-red-500'}`}></div>
+                          <span className={`text-[8px] lg:text-[9px] font-black uppercase tracking-widest ${p.consentSigned ? 'text-green-600' : 'text-red-600'}`}>
                             {p.consentSigned ? 'Verified' : 'Unverified'}
                           </span>
                         </div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-tighter italic cursor-pointer hover:text-blue-600" onClick={(e) => { e.stopPropagation(); handleUnmaskRequest(p.id, 'birthDate', 'Tanggal Lahir', p.birthDate); }}>{isFieldUnmasked(p.id, 'birthDate') ? p.birthDate : maskBirthDate(p.birthDate)}</span>
+                        <span className="text-[9px] lg:text-[10px] font-black text-slate-300 uppercase italic">{isFieldUnmasked(p.id, 'birthDate') ? p.birthDate : maskBirthDate(p.birthDate)}</span>
                       </div>
                     </div>
                   ))}
@@ -545,71 +456,27 @@ const App: React.FC = () => {
           )}
 
           {activeMenu === 'PDP_COMPLIANCE' && (
-            <div className="space-y-8 animate-in fade-in duration-500">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16"></div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-4 relative z-10">
-                      <IconHistory className="text-blue-600 w-8 h-8" /> Audit Transparansi Data
-                    </h2>
-                    <AuditLogView logs={logs} onLogClick={setSelectedLog} />
-                  </div>
+            <div className="space-y-6 animate-in fade-in duration-500">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+                <div className="lg:col-span-2">
+                   <AuditLogView logs={logs} onLogClick={setSelectedLog} />
                 </div>
-
-                <div className="space-y-8">
-                  <div className="bg-slate-900 text-white p-10 rounded-[2.5rem] border border-slate-800 shadow-2xl relative overflow-hidden group">
-                    <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-600/10 rounded-full group-hover:scale-110 transition-transform"></div>
-                    <h3 className="text-xs font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-                      <IconLock className="text-blue-400 w-5 h-5" /> PDP Legal Assistant
+                <div className="space-y-6">
+                  <div className="bg-slate-900 text-white p-6 lg:p-8 rounded-[2rem] border border-slate-800 shadow-xl overflow-hidden group">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                      <IconLock className="text-blue-400 w-4 h-4" /> Legal Assistant
                     </h3>
-                    <p className="text-slate-400 text-xs mb-8 leading-relaxed font-medium italic">"Tanyakan pedoman hukum UU PDP Nomor 27 Tahun 2022 melalui konsultasi AI instan."</p>
-                    
-                    <div className="space-y-3 mb-10 relative z-10">
-                      {['Izin Data Sensitif', 'Masa Retensi Data', 'Sanksi Pelanggaran', 'Hak Dilupakan'].map(topic => (
-                        <button 
-                          key={topic}
-                          onClick={() => fetchPDPAdvice(topic)}
-                          className="w-full text-left px-5 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 hover:border-blue-500/50 transition-all shadow-sm"
-                        >
-                          Topik: {topic}
+                    <div className="space-y-2 mb-8 relative z-10">
+                      {['Izin Data', 'Masa Retensi', 'Sanksi', 'Hak Hapus'].map(topic => (
+                        <button key={topic} onClick={() => fetchPDPAdvice(topic)} className="w-full text-left px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-700 transition-all">
+                          {topic}
                         </button>
                       ))}
                     </div>
-
-                    <div className="bg-slate-800/80 p-6 rounded-[1.5rem] border border-slate-700 min-h-[180px] shadow-inner">
-                      {loadingAi ? (
-                        <div className="flex flex-col justify-center items-center h-32 gap-4">
-                          <div className="w-6 h-6 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Consulting AI Knowledge Base...</p>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-slate-300 leading-relaxed italic font-medium">
-                          {pdpAdvice || "Silahkan pilih salah satu topik hukum di atas untuk mendapatkan ringkasan kepatuhan."}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Security Framework</h3>
-                    <div className="space-y-6">
-                      {[
-                        { label: 'Data Encryption', status: 'AES-256 Verified', active: true },
-                        { label: 'Audit Trail', status: 'Immutability Check OK', active: true },
-                        { label: 'Consent Engine', status: 'Dynamic Verification', active: true },
-                        { label: 'Penetration Test', status: 'Next: 12 July 2024', active: false }
-                      ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-4 group">
-                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${item.active ? 'bg-green-50 text-green-600' : 'bg-slate-50 text-slate-400 group-hover:bg-orange-50 group-hover:text-orange-600'}`}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-[10px] font-black text-slate-800 uppercase tracking-tight">{item.label}</p>
-                            <p className="text-[9px] font-bold text-slate-400 italic mt-0.5">{item.status}</p>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="bg-slate-800/80 p-4 rounded-xl border border-slate-700 min-h-[120px]">
+                      <p className="text-[11px] text-slate-300 leading-relaxed italic">
+                        {pdpAdvice || "Pilih topik hukum untuk ringkasan kepatuhan."}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -619,51 +486,49 @@ const App: React.FC = () => {
         </main>
       </div>
 
-      {/* PDP Compliance Modal for Unmasking Reason */}
+      {/* Mobile Bottom Navigation */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-16 flex items-center px-2 z-[60] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <NavItem id="DASHBOARD" icon={IconClipboard} label="Dashboard" />
+        <NavItem id="PATIENT_MANAGEMENT" icon={IconUser} label="Pasien" />
+        <NavItem id="PDP_COMPLIANCE" icon={IconLock} label="Kepatuhan" />
+      </nav>
+
+      {/* Unmasking Modal - Responsive */}
       {isUnmaskModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 border border-slate-100 overflow-hidden relative">
+        <div className="fixed inset-0 z-[100] flex items-end lg:items-center justify-center p-0 lg:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl p-6 lg:p-8 border-t lg:border border-slate-100 overflow-hidden relative">
             <div className="absolute top-0 right-0 p-8 opacity-5">
-              <IconLock className="w-24 h-24" />
+              <IconLock className="w-20 h-20" />
             </div>
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-[1.5rem] flex items-center justify-center mb-6">
-                <IconShield className="w-8 h-8" />
+              <div className="w-12 h-12 lg:w-16 lg:h-16 bg-blue-50 text-blue-600 rounded-xl lg:rounded-[1.5rem] flex items-center justify-center mb-4 lg:mb-6">
+                <IconShield className="w-6 h-6 lg:w-8 lg:h-8" />
               </div>
-              <h2 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tight">Otoritas Akses Data</h2>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">KEPATUHAN UU PDP PASAL 39</p>
+              <h2 className="text-lg lg:text-xl font-black text-slate-800 mb-1 uppercase tracking-tight">Otoritas Akses</h2>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-6 italic">KEPATUHAN UU PDP PASAL 39</p>
               
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 mb-6">
-                <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Target Akses</p>
-                <p className="text-sm font-black text-slate-700">{unmaskTarget?.label}: {patients.find(p => p.id === unmaskTarget?.patientId)?.name}</p>
+              <div className="p-3 lg:p-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+                <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Target Akses</p>
+                <p className="text-xs lg:text-sm font-black text-slate-700 truncate">{unmaskTarget?.label}: {patients.find(p => p.id === unmaskTarget?.patientId)?.name}</p>
               </div>
 
-              <div className="space-y-4">
-                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Alasan Mengakses Data Sensitif</label>
+              <div className="space-y-3 lg:space-y-4">
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Alasan Akses</label>
                 <textarea 
-                  className="w-full p-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-bold transition-all h-28 resize-none shadow-inner"
-                  placeholder="Contoh: Keperluan verifikasi klaim asuransi atau konsultasi medis mendesak..."
+                  className="w-full p-4 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-bold transition-all h-24 resize-none shadow-inner"
+                  placeholder="Contoh: Verifikasi klaim atau konsultasi mendesak..."
                   value={accessReason}
                   onChange={(e) => setAccessReason(e.target.value)}
                   autoFocus
                 />
-                <p className="text-[9px] text-slate-400 leading-relaxed italic">
-                  *Tindakan ini akan direkam dalam audit log permanen beserta nama akun Anda dan alasan akses.
-                </p>
               </div>
 
               <div className="flex gap-3 mt-8">
-                <button 
-                  onClick={() => setIsUnmaskModalOpen(false)}
-                  className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
-                >
+                <button onClick={() => setIsUnmaskModalOpen(false)} className="flex-1 py-3 lg:py-4 bg-slate-100 text-slate-500 rounded-xl lg:rounded-2xl font-black text-[10px] uppercase tracking-widest">
                   Batal
                 </button>
-                <button 
-                  onClick={submitUnmaskReason}
-                  className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200"
-                >
-                  Konfirmasi Akses
+                <button onClick={submitUnmaskReason} className="flex-1 py-3 lg:py-4 bg-blue-600 text-white rounded-xl lg:rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg">
+                  Konfirmasi
                 </button>
               </div>
             </div>
@@ -671,71 +536,53 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Audit Log Detail Modal */}
+      {/* Log Detail Modal - Responsive */}
       {selectedLog && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl p-10 border border-slate-100 overflow-hidden relative">
+        <div className="fixed inset-0 z-[100] flex items-end lg:items-center justify-center p-0 lg:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-xl rounded-t-[2rem] lg:rounded-[2.5rem] shadow-2xl p-6 lg:p-10 border-t lg:border border-slate-100 overflow-hidden relative">
             <div className="absolute top-0 right-0 p-10 opacity-5">
-              <IconHistory className="w-32 h-32" />
+              <IconHistory className="w-24 h-24 lg:w-32 lg:h-32" />
             </div>
             <div className="relative z-10">
-              <div className="flex justify-between items-start mb-8">
+              <div className="flex justify-between items-start mb-6 lg:mb-8">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Detail Log Audit</h2>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Keamanan Sistem Terintegrasi</p>
+                  <h2 className="text-xl lg:text-2xl font-black text-slate-800 uppercase tracking-tight">Detail Log Audit</h2>
+                  <p className="text-[9px] lg:text-xs font-bold text-slate-400 uppercase tracking-widest">Keamanan Sistem</p>
                 </div>
-                <button onClick={() => setSelectedLog(null)} className="p-3 hover:bg-slate-100 rounded-2xl transition-all">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <button onClick={() => setSelectedLog(null)} className="p-2 hover:bg-slate-100 rounded-xl transition-all">
+                  <span className="pi pi-times font-black text-slate-400"></span>
                 </button>
               </div>
 
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Timestamp</p>
-                    <p className="text-xs font-bold text-slate-700 font-mono">{new Date(selectedLog.timestamp).toLocaleString('id-ID')}</p>
+              <div className="space-y-4 lg:space-y-6">
+                <div className="grid grid-cols-2 gap-3 lg:gap-6">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[8px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Timestamp</p>
+                    <p className="text-[10px] lg:text-xs font-bold text-slate-700 font-mono">{new Date(selectedLog.timestamp).toLocaleString('id-ID')}</p>
                   </div>
-                  <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">User ID</p>
-                    <p className="text-xs font-bold text-slate-700 font-mono">{selectedLog.userId}</p>
-                  </div>
-                  <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Action Type</p>
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase ${
-                      selectedLog.action === 'VIEW' ? 'bg-blue-100 text-blue-700' :
-                      selectedLog.action === 'DELETE' ? 'bg-red-100 text-red-700' :
-                      'bg-slate-200 text-slate-700'
-                    }`}>
-                      {selectedLog.action}
-                    </span>
-                  </div>
-                  <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Resource ID</p>
-                    <p className="text-xs font-bold text-slate-700 font-mono">{selectedLog.resourceId}</p>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[8px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Action</p>
+                    <span className="text-[10px] font-black text-blue-700 uppercase">{selectedLog.action}</span>
                   </div>
                 </div>
 
-                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Deskripsi Lengkap Aktivitas</p>
-                  <p className="text-sm font-bold text-slate-800 leading-relaxed italic">
+                <div className="p-4 lg:p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[8px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Aktivitas</p>
+                  <p className="text-xs lg:text-sm font-bold text-slate-800 leading-relaxed italic">
                     "{selectedLog.details}"
                   </p>
                 </div>
 
-                <div className="p-6 border-l-4 border-blue-500 bg-blue-50/50 rounded-r-3xl">
-                  <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-1">Catatan Kepatuhan</p>
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
-                    Data log ini bersifat 'immutable' dan telah terenkripsi. Sesuai Pasal 39 UU PDP, bukti akses ini disimpan untuk audit forensik jika terjadi sengketa perlindungan data.
+                <div className="p-4 lg:p-6 border-l-4 border-blue-500 bg-blue-50/30 rounded-r-2xl">
+                  <p className="text-[10px] text-slate-600 leading-relaxed font-medium">
+                    Data ini bersifat permanen dan tervalidasi sebagai bukti hukum sesuai UU PDP.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-10">
-                <button 
-                  onClick={() => setSelectedLog(null)}
-                  className="w-full py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl"
-                >
-                  Tutup Rincian
+              <div className="mt-8">
+                <button onClick={() => setSelectedLog(null)} className="w-full py-3 lg:py-4 bg-slate-900 text-white rounded-xl lg:rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest shadow-lg">
+                  Tutup
                 </button>
               </div>
             </div>
@@ -743,18 +590,12 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <footer className="bg-white border-t border-slate-100 py-8 px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+      {/* Desktop Footer */}
+      <footer className="hidden lg:block bg-white border-t border-slate-100 py-8 px-8 mt-auto">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white">
-              <IconShield className="w-4 h-4" />
-            </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">MedGuard Pro • UU PDP No. 27/2022 Verified System</p>
-          </div>
-          <div className="flex gap-8">
-            <a href="#" className="text-[10px] font-black text-slate-400 hover:text-blue-600 transition-all uppercase tracking-widest underline decoration-slate-200 decoration-2 underline-offset-8">Data Privacy Portal</a>
-            <a href="#" className="text-[10px] font-black text-slate-400 hover:text-blue-600 transition-all uppercase tracking-widest underline decoration-slate-200 decoration-2 underline-offset-8">Compliance Whitepaper</a>
-            <a href="#" className="text-[10px] font-black text-slate-400 hover:text-blue-600 transition-all uppercase tracking-widest underline decoration-slate-200 decoration-2 underline-offset-8">Legal API</a>
+            <IconShield className="w-5 h-5 text-slate-400" />
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">MedGuard Pro • Verified 2024</p>
           </div>
         </div>
       </footer>
