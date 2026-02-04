@@ -203,10 +203,10 @@ const App: React.FC = () => {
     return (
       <button 
         onClick={() => { setActiveMenu(id); setSelectedPatient(null); setIsAddingPatient(false); setIsEditingPatient(false); }}
-        className={`flex flex-col lg:flex-row items-center gap-1 lg:gap-4 px-3 lg:px-5 py-2 lg:py-4 rounded-xl lg:rounded-2xl font-black text-[10px] lg:text-xs uppercase tracking-widest transition-all flex-1 lg:flex-none ${active ? 'bg-blue-600 text-white shadow-lg lg:shadow-2xl lg:shadow-blue-200 lg:scale-105' : 'text-slate-400 hover:bg-white hover:text-slate-800'}`}
+        className={`flex flex-col lg:flex-row items-center justify-center gap-1 lg:gap-4 px-1 lg:px-5 py-2 lg:py-4 rounded-xl lg:rounded-2xl font-black text-[9px] lg:text-xs uppercase tracking-widest transition-all flex-1 lg:flex-none ${active ? 'bg-blue-600 text-white shadow-lg lg:shadow-2xl lg:shadow-blue-200 lg:scale-105' : 'text-slate-400 hover:bg-white hover:text-slate-800'}`}
       >
         <Icon className={`w-5 h-5 lg:w-5 lg:h-5 ${active ? 'text-white' : 'text-slate-400'}`} />
-        <span>{label}</span>
+        <span className="hidden xs:inline">{label}</span>
       </button>
     );
   };
@@ -215,27 +215,28 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col font-['Inter'] pb-20 lg:pb-0">
       {/* Header - Adaptive */}
       <header className="bg-white border-b border-slate-200 h-14 lg:h-16 flex items-center px-4 lg:px-6 sticky top-0 z-50">
-        <div className="flex items-center gap-2 lg:gap-3">
-          <div className="w-8 h-8 lg:w-10 lg:h-10 bg-blue-600 rounded-lg lg:rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
+        <div className="flex items-center gap-2 lg:gap-3 flex-1 min-w-0">
+          <div className="w-8 h-8 lg:w-10 lg:h-10 bg-blue-600 rounded-lg lg:rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-100 shrink-0">
             <IconShield className="w-5 h-5 lg:w-6 lg:h-6" />
           </div>
-          <div className="hidden xs:block">
-            <h1 className="text-sm lg:text-lg font-black text-slate-800 tracking-tight leading-none">MedGuard</h1>
-            <p className="text-[8px] lg:text-[10px] text-slate-500 font-black uppercase tracking-tighter">Health Governance</p>
+          <div className="block truncate">
+            <h1 className="text-sm lg:text-lg font-black text-slate-800 tracking-tight leading-none truncate">MedGuard</h1>
+            <p className="text-[8px] lg:text-[10px] text-slate-500 font-black uppercase tracking-tighter hidden sm:block">Health Governance</p>
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-2 lg:gap-4">
-          <div className="hidden sm:flex px-3 py-1 bg-blue-50 text-blue-700 text-[9px] font-black rounded-full border border-blue-100 items-center gap-2">
+        
+        <div className="flex items-center gap-2 lg:gap-4 justify-end">
+          <div className="hidden md:flex px-3 py-1 bg-blue-50 text-blue-700 text-[9px] font-black rounded-full border border-blue-100 items-center gap-2">
             <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
-            ENCRYPTED
+            SECURE
           </div>
           <div className="h-6 lg:h-8 w-px bg-slate-200"></div>
-          <div className="flex items-center gap-2 lg:gap-3">
-            <div className="text-right hidden lg:block">
-              <p className="text-xs font-black text-slate-700">{currentUser.name}</p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase">{currentUser.role}</p>
+          <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+            <div className="text-right block">
+              <p className="text-[10px] lg:text-xs font-black text-slate-700 truncate max-w-[80px] sm:max-w-none">{currentUser.name}</p>
+              <p className="text-[8px] lg:text-[10px] text-slate-400 font-bold uppercase hidden xs:block">{currentUser.role}</p>
             </div>
-            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-2xl bg-slate-100 border lg:border-2 border-slate-200 flex items-center justify-center text-slate-400 shadow-sm">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm shrink-0">
               <IconUser className="w-4 h-4 lg:w-5 lg:h-5" />
             </div>
           </div>
